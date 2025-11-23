@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Special For you</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<style>
+    body{
+        margin:0;
+        padding:0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg,#ffb3e6,#ff66cc,#9933ff);
+        color:white;
+        text-align:center;
+        overflow:hidden;
+    }
+
+    .card{
+        margin-top:40px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        padding:20px;
+        border-radius:20px;
+        width:90%;
+        max-width:400px;
+        margin-left:auto;
+        margin-right:auto;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    h1 span{
+        color:#ffea55;
+    }
+
+    .btn-yes, .btn-no{
+        padding:12px 30px;
+        border:none;
+        border-radius:50px;
+        font-size:18px;
+        font-weight:bold;
+        cursor:pointer;
+        margin:10px;
+    }
+
+    .btn-yes{
+        background: linear-gradient(135deg,#00ffb3,#00b8ff);
+        color:#022;
+    }
+
+    .btn-no{
+        background: linear-gradient(135deg,#00ffb3bb,#00b8ffbb);
+        color:#022;
+        opacity:0.9;
+        position:relative;
+    }
+
+    /* Floating hearts */
+    .heart{
+        position:fixed;
+        bottom:-50px;
+        font-size:28px;
+        animation: floatUp 6s linear infinite;
+        opacity:0.7;
+        z-index:-1;
+    }
+    @keyframes floatUp{
+        0%{ transform:translateY(0) translateX(0); opacity:0.4;}
+        100%{ transform:translateY(-110vh) translateX(20px); opacity:0;}
+    }
+
+    /* Confetti */
+    .confetti-piece{
+        position:fixed;
+        top:-10px;
+        width:8px;
+        height:14px;
+        background:red;
+        opacity:0.8;
+        animation:fall 2.5s linear forwards;
+    }
+    @keyframes fall{
+        to{ transform: translateY(110vh) rotate(360deg);}
+    }
+
+    /* Overlay */
+    #resultOverlay{
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.85);
+        display:none;
+        justify-content:center;
+        align-items:center;
+        padding:20px;
+    }
+    #resultOverlay.show{
+        display:flex;
+    }
+    #resultOverlay div{
+        background:white;
+        color:black;
+        padding:20px 30px;
+        border-radius:20px;
+        width:90%;
+        max-width:350px;
+        text-align:center;
+    }
+
+    #topPopup{
+        position:fixed;
+        top:10%;
+        left:50%;
+        transform:translateX(-50%);
+        background:rgba(0,0,0,0.85);
+        padding:14px 26px;
+        font-size:18px;
+        border-radius:14px;
+        box-shadow:0 0 20px rgba(255,255,255,0.3);
+        opacity:0;
+        transition:0.3s;
+        z-index:9999;
+        color:white;
+    }
+</style>
+
+</head>
+<body>
+
+<!-- HEART FLOATERS -->
+<div id="hearts"></div>
+
+<!-- POPUP -->
+<div id="topPopup"></div>
+
+<div class="card">
+
+    <h1>Hey <span>Sejuu</span> 💕</h1>
+
+    <p style="font-size:14px">
+        Thoda serious lag raha hoga, par ye sirf ek cute sa moment hai… 👀
+    </p>
+
+    <button class="btn-yes">YES 😍</button>
+    <button class="btn-no">NO</button>
+</div>
+
+ <p style="font-size:14px;margin-top:5px;">
+        Hint: “No” ka button bhi tumse sharma raha hai… try karke dekh 😜
+    </p>
+    
+     <p style="font-size:12px;margin-top:8px;opacity:0.8;">
+        *Acha lag gaya ho to screenshot bhejna compulsory hai 🤭
+    </p>
+
+<!-- Overlay -->
+<div id="resultOverlay">
+    <div>
+        <h2>Tumne YES bol diya! 😳🎉</h2>
+        <p>Ab iska screenshot bhejna padega 😌</p>
+        <button id="okBtn" style="margin-top:10px;padding:10px 20px;border-radius:10px;font-weight:bold;">Okay 😅</button>
+    </div>
+</div>
+
+<div id="confetti"></div>
+
+<script>
+/* Buttons */
+const yesBtn = document.querySelector(".btn-yes");
+const noBtn = document.querySelector(".btn-no");
+
+/* Popup */
+const popup = document.getElementById("topPopup");
+
+/* Overlay */
+const resultOverlay = document.getElementById("resultOverlay");
+const okBtn = document.getElementById("okBtn");
+const confettiContainer = document.getElementById("confetti");
+
+/* Messages */
+let msgIndex = 0;
+let finalMode = false;
+
+/* SWAP COUNTER */
+let clickSwapCounter = 0;
+
+/* All messages */
+const messages = [
+    "बडे ही pathar दिल हो 😒",
+    "Naa bol hi nahi sakti 😏",
+    "Aree Ladka acha hai haa kr do 😌",
+    "Arey haath halka rakh 😳",
+    "Sejuu.. YES kar na 😌",
+    " 'NO' allowed nahi 😜",
+    "haa kr de Zhumke dilaunga 💋",
+    "YES karogi to gift milega 🎁",
+    "tumko मेरे साथ Ghumne jana hai ki nhi 😎",
+    "Nice try baby 😘",
+    "Haa bol do na baby 😳",
+    "Chal phir se try 🤣",
+    "Baby maan bhi jao na ❤️",
+    "Itna bhav kyun khati ho 😭",
+    "Uff kya try karegi!",
+    "Tum naa bol hi nahi sakti 😘",
+    "Bas yahi moment ka wait tha 😏",
+    "Aaj toh YES nikalwa ke rahunga 😎",
+    "Naa mat bolo, mera dil toot jayega 💔",
+    "Challenge: NO mat dabana 😉"
+];
+
+/* Popup show */
+function showPopup(msg){
+    popup.innerText = msg;
+    popup.style.opacity = 1;
+}
+
+/* Confetti */
+function shootConfetti(){
+    confettiContainer.innerHTML = "";
+    for(let i=0;i<80;i++){
+        const p=document.createElement("div");
+        p.classList.add("confetti-piece");
+        p.style.left=Math.random()*100+"vw";
+        p.style.background=["#ff4d4d","#ffcc00","#00ffbf","#66b3ff","#ff99ff"][Math.floor(Math.random()*5)];
+        p.style.animationDelay=Math.random()+"s";
+        confettiContainer.appendChild(p);
+    }
+    setTimeout(()=>confettiContainer.innerHTML="",3000);
+}
+
+/* 🔥 UPDATED HANDLE-NO FUNCTION WITH SWAP LOGIC */
+function handleNo(){
+
+    clickSwapCounter++;   // count click for swapping feature
+
+    // If all messages done → convert to YES
+    if(finalMode){
+        resultOverlay.classList.add("show");
+        shootConfetti();
+        return;
+    }
+
+    // Show next popup message
+    showPopup(messages[msgIndex]);
+    msgIndex++;
+
+    // If completed all → switch NO → YES permanently
+    if(msgIndex >= messages.length){
+        finalMode = true;
+        noBtn.innerText = "YES 😍";
+        noBtn.style.background = "linear-gradient(135deg,#00ffb3,#00b8ff)";
+        noBtn.style.opacity = "1";
+        noBtn.style.position = "static";
+        return;
+    }
+
+    // SAFE movement inside screen
+    const x = 10 + Math.random()*80; 
+    const y = 20 + Math.random()*60;
+
+    noBtn.innerText = "NO";
+    noBtn.style.position="fixed";
+    noBtn.style.left=x+"vw";
+    noBtn.style.top=y+"vh";
+    noBtn.style.opacity="0.9";
+    noBtn.style.background="linear-gradient(135deg,#00ffb3bb,#00b8ffbb)";
+
+    /* 🔥 EVERY 5 CLICKS → SWAP BUTTON POSITIONS */
+    if(clickSwapCounter % 5 === 0){
+
+        // Save YES button position
+        const yesX = yesBtn.getBoundingClientRect().left;
+        const yesY = yesBtn.getBoundingClientRect().top;
+
+        // Save NO button position
+        const noX = noBtn.getBoundingClientRect().left;
+        const noY = noBtn.getBoundingClientRect().top;
+
+        // Swap positions
+        yesBtn.style.position = "fixed";
+        yesBtn.style.left = noX + "px";
+        yesBtn.style.top  = noY + "px";
+
+        noBtn.style.left = yesX + "px";
+        noBtn.style.top  = yesY + "px";
+    }
+}
+
+/* Bind NO moves */
+["click","touchstart"].forEach(evt=>{
+    noBtn.addEventListener(evt,(e)=>{
+        e.preventDefault();
+        handleNo();
+    });
+});
+
+/* YES button */
+yesBtn.addEventListener("click",()=>{
+    resultOverlay.classList.add("show");
+    shootConfetti();
+});
+
+/* Overlay close */
+okBtn.addEventListener("click",()=>{
+    resultOverlay.classList.remove("show");
+});
+
+/* Floating hearts */
+const hearts = document.getElementById("hearts");
+function spawnHeart(){
+    const h=document.createElement("div");
+    h.classList.add("heart");
+    h.innerText=["💗","💖","💘","💝"][Math.floor(Math.random()*4)];
+    h.style.left=Math.random()*100+"vw";
+    h.style.animationDuration = 4 + Math.random()*4 + "s";
+    hearts.appendChild(h);
+    setTimeout(()=>h.remove(),7000);
+}
+setInterval(spawnHeart,500);
+</script>
+
+
+</body>
+</html>
